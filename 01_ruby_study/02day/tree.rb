@@ -5,16 +5,24 @@
 # puts 4.class.superclass.superclass.superclass # BasicObject
 # puts 4.class.superclass.superclass.superclass.superclass # nil
 
+# wrong
+# it's returning the string 'a' after the first pass,
+# which becomes res in the next pass and you end up calling the string's []= method.
+# %w[a b].inject({}) {|res,e| res[e] = e; res}
+
+# right
+p %w[a b].inject({}) { |res, e| res[e] = e; res }
+
 class Tree
   attr :children, :node_name
 
-  def initialize(name, children = {})
-    @node_name = name
+  def initialize(data = {})
     @children = []
-    children[children.keys[0]].each do |key, value|
-      puts key
-      puts value
-      @children.push(Tree.new({ key => value }))
+    data.each do |key, value|
+      @node_name = key
+      @children = value.inject([]) { |res, (k, r)|
+        res.push(Tree.new(k => r))
+      }
     end
   end
 
@@ -29,14 +37,14 @@ class Tree
 end
 
 puts "Visiting a node"
-family_tree = Tree.new("family",
-                       { 'grandpa' =>
-                           { 'dad' =>
-                               { 'child 1' => {}, 'child 2' => {} },
-                             'uncle' =>
-                               { 'child 3' => {}, 'child 4' => {} }
-                           }
-                       })
+family_tree = Tree.new(
+  { 'grandpa' =>
+      { 'dad' => {}
+        # { 'child 1' => {}, 'child 2' => {} },
+        # 'uncle' =>
+        #   { 'child 3' => {}, 'child 4' => {} }
+      }
+  })
 family_tree.visit { |node| puts node.node_name } # Ruby
 puts
 
